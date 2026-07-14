@@ -1,0 +1,43 @@
+services:
+  app:
+    build: .
+    container_name: rekam-medis-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - db
+
+    healthcheck:
+      test: ["CMD", "php", "-v"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: rekam-medis-nginx
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+
+  db:
+    image: mysql:8.0
+    container_name: rekam-medis-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: rekam_medis
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel123
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
